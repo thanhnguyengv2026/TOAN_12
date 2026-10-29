@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bộ Đề Ôn Theo Chương HK1 - Toán 12 (Đề 4 & 5)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body { font-family: 'Times New Roman', Times, serif; background-color: #f3f4f6; color: #1f2937; }
+        .bbt-table th, .bbt-table td { border-collapse: collapse; text-align: center; }
+        .katex { font-size: 1.15em; }
+        a[href*="netlify.com"] { display: none !important; }
+        
+        .option-btn { transition: all 0.2s; cursor: pointer; }
+        .option-btn.selected-correct { background-color: #dcfce7; border-color: #22c55e; color: #166534; font-weight: bold;}
+        .option-btn.selected-wrong { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .option-btn.show-correct { background-color: #dcfce7; border-color: #22c55e; color: #166534; font-weight: bold;}
+        
+        .tf-btn { transition: all 0.2s; cursor: pointer; width: 44px; height: 44px; flex-shrink: 0; font-weight: bold; border-radius: 8px; border: 2px solid #d1d5db; background: #f9fafb; color: #4b5563; display: flex; align-items: center; justify-content: center; }
+        .tf-btn:hover:not(:disabled) { background: #e5e7eb; border-color: #9ca3af; }
+        .tf-btn.selected-false { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .tf-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+        .tf-btn.correct-highlight { background-color: #dcfce7; border-color: #22c55e; color: #166534; opacity: 1; }
+
+        .answer-input { border: 2px solid #d1d5db; border-radius: 8px; padding: 10px 15px; font-size: 1.25rem; font-weight: bold; color: #1f2937; width: 100%; max-width: 300px; text-align: center; transition: all 0.2s; outline: none; }
+        .answer-input:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2); }
+        .answer-input:disabled { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+        .check-btn { background-color: #0284c7; color: white; font-weight: bold; padding: 10px 24px; border-radius: 8px; transition: background 0.2s; }
+        .check-btn:hover:not(:disabled) { background-color: #0369a1; }
+        .check-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .part-badge { display: inline-block; padding: 4px 12px; background: #e0e7ff; color: #4338ca; font-weight: bold; border-radius: 9999px; font-size: 0.9rem; margin-bottom: 12px; }
+        .svg-container { max-width: 450px; margin: 0 auto; border: 1px solid #ddd; background: #fff; padding: 10px; border-radius: 8px; overflow: hidden; }
+        
+        .part-btn { padding: 8px 16px; border-radius: 8px; font-weight: bold; transition: all 0.2s; cursor: pointer; border: 2px solid transparent; }
+        .part-btn.active { background-color: #1e3a8a; color: white; border-color: #1e3a8a; }
+        .part-btn.inactive { background-color: #e5e7eb; color: #4b5563; }
+        .part-btn.inactive:hover { background-color: #d1d5db; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-blue-700 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex flex-col items-center gap-3">
+            <h1 class="text-lg md:text-xl font-bold uppercase tracking-wide text-center">BỘ ĐỀ ÔN THEO CHƯƠNG HK1 - TOÁN 12</h1>
+            <div class="flex flex-wrap justify-center gap-2" id="partSelector">
+                <button class="part-btn active" onclick="switchPart('DE4')">ĐỀ SỐ 4</button>
+                <button class="part-btn inactive" onclick="switchPart('DE5')">ĐỀ SỐ 5</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center justify-start p-4 w-full">
+        <div class="w-full max-w-4xl flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-blue-800" id="currentPartTitle">ĐỀ SỐ 4</h2>
+            <div class="bg-blue-900 text-yellow-300 px-4 py-2 rounded-lg border border-blue-500 shadow-inner font-bold text-lg">
+                <span id="scoreTracker">Hoàn thành: 0 / 22</span>
+            </div>
+        </div>
+        
+        <!-- Khu vực hiển thị toàn bộ câu hỏi (Scroll mode) -->
+        <div class="w-full max-w-4xl bg-transparent" id="appContainer">
+        </div>
+    </main>
+
+    <footer class="bg-white border-t p-4 pb-8 md:pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] sticky bottom-0 w-full z-50">
+        <div class="max-w-4xl mx-auto text-center font-bold text-gray-600">
+            Cuộn để làm bài • Tự động chấm điểm
+        </div>
+    </footer>
+
+    <script>
+        // CÁC HÀM VẼ ĐỒ THỊ BẰNG SVG
+        function getSvgD4Q7() {
+            return `
+                <div class="svg-container">
+                    <svg viewBox="0 0 500 400" width="100%">
+                        <g stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3">
+                            <line x1="0" y1="50" x2="500" y2="50"/><line x1="0" y1="150" x2="500" y2="150"/><line x1="0" y1="250" x2="500" y2="250"/><line x1="0" y1="350" x2="500" y2="350"/>
+                            <line x1="100" y1="0" x2="100" y2="400"/><line x1="200" y1="0" x2="200" y2="400"/><line x1="300" y1="0" x2="300" y2="400"/><line x1="400" y1="0" x2="400" y2="400"/>
+                        </g>
+                        <path d="M0,250 L500,250 M250,0 L250,400" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="500,250 490,246 490,254" fill="#000"/><polygon points="250,0 246,10 254,10" fill="#000"/>
+                        <text x="485" y="240" font-style="italic" font-size="18">x</text>
+                        <text x="260" y="15" font-style="italic" font-size="18">y</text>
+                        <text x="230" y="270" font-style="italic" font-size="18">O</text>
+                        
+                        <path d="M150,250 L150,50 L250,50" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="140" y="270" font-size="18">-1</text>
+                        <text x="260" y="45" font-size="18">3</text>
+                        <circle cx="150" cy="50" r="4" fill="#000"/>
+                        
+                        <path d="M350,250 L350,350 L250,350" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="345" y="240" font-size="18">1</text>
+                        <text x="225" y="355" font-size="18">-1</text>
+                        <circle cx="350" cy="350" r="4" fill="#000"/>
+                        
+                        <path d="M150,50 C200,50 300,350 350,350" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                        <path d="M150,50 C120,50 90,300 80,400" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                        <path d="M350,350 C380,350 410,100 420,0" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                        
+                        <text x="260" y="200" font-size="18">1</text>
+                        <text x="60" y="270" font-size="18">-2</text>
+                        <text x="410" y="270" font-size="18">2</text>
+                        
+                        <path d="M80,350 L250,350" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <path d="M420,50 L250,50" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <path d="M80,250 L80,350" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <path d="M420,250 L420,50" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getSvgD4Q10(type) {
+            return `
+                <div class="bg-white border rounded p-2 text-center">
+                    <span class="font-bold block mb-1 text-blue-800">${type}.</span>
+                    <svg viewBox="0 0 200 200" width="100%">
+                        <path d="M0,100 L200,100 M100,0 L100,200" stroke="#000" stroke-width="1"/>
+                        <polygon points="200,100 195,98 195,102" fill="#000"/>
+                        <polygon points="100,0 98,5 102,5" fill="#000"/>
+                        <text x="105" y="115" font-size="12">O</text>
+                        ${type === 'A' ? `
+                            <path d="M150,0 L150,200" stroke="#d32f2f" stroke-dasharray="4,4" fill="none"/>
+                            <path d="M0,50 L200,250" stroke="#d32f2f" stroke-dasharray="4,4" fill="none" transform="rotate(-90 100 100)"/> 
+                            <path d="M80,0 C100,60 140,80 145,200" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                            <path d="M155,0 C160,120 180,180 200,200" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                        ` : ''}
+                        ${type === 'B' ? `
+                            <path d="M150,0 L150,200" stroke="#d32f2f" stroke-dasharray="4,4" fill="none"/>
+                            <path d="M0,200 L200,0" stroke="#d32f2f" stroke-dasharray="4,4" fill="none"/>
+                            <path d="M50,0 C100,100 140,90 145,200" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                            <path d="M155,0 C160,110 180,180 200,150" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                        ` : ''}
+                        ${type === 'C' ? `
+                            <path d="M150,0 L150,200" stroke="#d32f2f" stroke-dasharray="4,4" fill="none"/>
+                            <path d="M0,150 L200,-50" stroke="#d32f2f" stroke-dasharray="4,4" fill="none"/>
+                            <path d="M50,-50 C100,50 140,80 145,200" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                            <path d="M155,0 C160,120 180,180 200,150" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                        ` : ''}
+                        ${type === 'D' ? `
+                            <path d="M50,0 L50,200" stroke="#d32f2f" stroke-dasharray="4,4" fill="none"/>
+                            <path d="M0,150 L200,-50" stroke="#d32f2f" stroke-dasharray="4,4" fill="none"/>
+                            <path d="M0,-50 C20,50 40,80 45,200" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                            <path d="M55,0 C60,120 100,180 200,200" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                        ` : ''}
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getSvgD4Q11() {
+            return `
+                <div class="svg-container">
+                    <svg viewBox="0 0 500 400" width="100%">
+                        <path d="M0,250 L500,250 M250,0 L250,400" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="500,250 490,246 490,254" fill="#000"/><polygon points="250,0 246,10 254,10" fill="#000"/>
+                        <text x="485" y="240" font-style="italic" font-size="18">x</text>
+                        <text x="260" y="15" font-style="italic" font-size="18">y</text>
+                        <text x="230" y="270" font-style="italic" font-size="18">O</text>
+                        <path d="M150,0 L150,400" stroke="#d32f2f" stroke-dasharray="8,8" stroke-width="2"/>
+                        <path d="M0,200 L500,200" stroke="#d32f2f" stroke-dasharray="8,8" stroke-width="2"/>
+                        <text x="130" y="270" font-size="18">-1</text>
+                        <text x="260" y="195" font-size="18">1/2</text>
+                        <text x="260" y="325" font-size="18">-1/2</text>
+                        <text x="345" y="270" font-size="18">1</text>
+                        <path d="M0,220 C100,220 140,240 145,400" fill="none" stroke="#2563EB" stroke-width="3"/>
+                        <path d="M155,0 C160,180 200,195 500,195" fill="none" stroke="#2563EB" stroke-width="3"/>
+                    </svg>
+                </div>
+            `;
+        }
+        
+        function getSvgD4Q12() {
+            return `
+                <div class="svg-container">
+                    <svg viewBox="0 0 500 400" width="100%">
+                        <path d="M0,200 L500,200 M250,0 L250,400" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="500,200 490,196 490,204" fill="#000"/><polygon points="250,0 246,10 254,10" fill="#000"/>
+                        <text x="485" y="190" font-style="italic" font-size="18">x</text>
+                        <text x="260" y="15" font-style="italic" font-size="18">y</text>
+                        <text x="230" y="220" font-style="italic" font-size="18">O</text>
+                        <path d="M350,200 L350,50 L250,50" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="345" y="220" font-size="18">1</text>
+                        <text x="235" y="55" font-size="18">2</text>
+                        <path d="M150,200 L150,350 L250,350" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="135" y="190" font-size="18">-1</text>
+                        <text x="220" y="355" font-size="18">-2</text>
+                        <path d="M50,0 C100,250 120,350 150,350 C200,350 250,200 250,200 C250,200 300,50 350,50 C380,50 400,150 450,400" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getSvgD4P2Q3() {
+            return `
+                <div class="svg-container">
+                    <svg viewBox="0 0 500 400" width="100%">
+                        <g stroke="#e5e7eb" stroke-width="1">
+                            <line x1="0" y1="50" x2="500" y2="50"/><line x1="0" y1="100" x2="500" y2="100"/><line x1="0" y1="150" x2="500" y2="150"/><line x1="0" y1="200" x2="500" y2="200"/><line x1="0" y1="250" x2="500" y2="250"/><line x1="0" y1="300" x2="500" y2="300"/><line x1="0" y1="350" x2="500" y2="350"/>
+                            <line x1="100" y1="0" x2="100" y2="400"/><line x1="150" y1="0" x2="150" y2="400"/><line x1="200" y1="0" x2="200" y2="400"/><line x1="250" y1="0" x2="250" y2="400"/><line x1="300" y1="0" x2="300" y2="400"/><line x1="350" y1="0" x2="350" y2="400"/><line x1="400" y1="0" x2="400" y2="400"/>
+                        </g>
+                        <path d="M0,250 L500,250 M250,0 L250,400" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="500,250 490,246 490,254" fill="#000"/><polygon points="250,0 246,10 254,10" fill="#000"/>
+                        <text x="485" y="240" font-style="italic" font-size="18">x</text>
+                        <text x="260" y="15" font-style="italic" font-size="18">y</text>
+                        <text x="235" y="270" font-style="italic" font-size="18">O</text>
+                        <path d="M50,450 L450,50" stroke="#d32f2f" stroke-width="2"/>
+                        <path d="M150,0 L150,400" stroke="#d32f2f" stroke-width="2"/>
+                        <text x="130" y="240" font-size="18">-1</text>
+                        <text x="90" y="240" font-size="18">-2</text>
+                        <text x="260" y="195" font-size="18">1</text>
+                        <text x="260" y="145" font-size="18">2</text>
+                        <path d="M50,400 C120,400 145,400 145,400" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                        <path d="M0,250 C100,100 140,0 145,-50" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                        <path d="M155,450 C160,300 200,200 450,0" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getSvgD5P2Q3() {
+            return `
+                <div class="svg-container">
+                    <svg viewBox="0 0 500 400" width="100%">
+                        <path d="M0,250 L500,250 M250,0 L250,400" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="500,250 490,246 490,254" fill="#000"/><polygon points="250,0 246,10 254,10" fill="#000"/>
+                        <text x="485" y="240" font-style="italic" font-size="18">x</text>
+                        <text x="260" y="15" font-style="italic" font-size="18">y</text>
+                        <text x="230" y="270" font-style="italic" font-size="18">O</text>
+                        <path d="M150,250 L150,100 L250,100" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="140" y="270" font-size="18">-1</text>
+                        <text x="260" y="105" font-size="18">3</text>
+                        <circle cx="150" cy="100" r="4" fill="#000"/>
+                        <path d="M350,250 L350,300 L250,300" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="345" y="240" font-size="18">1</text>
+                        <text x="225" y="305" font-size="18">-1</text>
+                        <circle cx="350" cy="300" r="4" fill="#000"/>
+                        <text x="260" y="200" font-size="18">1</text>
+                        <path d="M50,400 C100,100 130,100 150,100 C200,100 220,200 250,200 C280,200 300,300 350,300 C400,300 450,100 480,-50" fill="none" stroke="#059669" stroke-width="3"/>
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getSvgD5Q12() {
+            return `
+                <div class="svg-container">
+                    <svg viewBox="0 0 500 400" width="100%">
+                        <path d="M0,250 L500,250 M250,0 L250,400" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="500,250 490,246 490,254" fill="#000"/><polygon points="250,0 246,10 254,10" fill="#000"/>
+                        <text x="485" y="240" font-style="italic" font-size="18">x</text>
+                        <text x="260" y="15" font-style="italic" font-size="18">y</text>
+                        <text x="230" y="270" font-style="italic" font-size="18">O</text>
+                        <text x="150" y="270" font-size="18">-1</text>
+                        <text x="50" y="270" font-size="18">-2</text>
+                        <text x="350" y="270" font-size="18">1</text>
+                        <text x="450" y="270" font-size="18">2</text>
+                        <path d="M150,250 L150,100 L250,100" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="260" y="105" font-size="18">2</text>
+                        <path d="M350,250 L350,350 L250,350" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="225" y="355" font-size="18">-2</text>
+                        <path d="M50,250 L50,150 L250,150" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="260" y="155" font-size="18">1</text>
+                        <path d="M450,250 L450,50 L250,50" stroke="#000" stroke-dasharray="5,5" fill="none"/>
+                        <text x="225" y="55" font-size="18">3</text>
+                        <path d="M0,50 C50,150 100,350 150,350 C200,350 250,250 250,250 C250,250 300,50 350,50 C400,50 450,250 500,100" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+                    </svg>
+                </div>
+            `;
+        }
+
+        function getSvgD5P3Q6() {
+            return `
+                <div class="svg-container">
+                    <svg viewBox="0 0 500 300" width="100%">
+                        <path d="M0,250 L500,250" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="500,250 490,246 490,254" fill="#000"/>
+                        <text x="485" y="240" font-style="italic" font-size="18">x</text>
+                        <path d="M250,0 L250,300" stroke="#000" stroke-width="1.5"/>
+                        <polygon points="250,0 246,10 254,10" fill="#000"/>
+                        <text x="260" y="15" font-style="italic" font-size="18">y</text>
+                        <text x="230" y="240" font-style="italic" font-size="18">O</text>
+                        <path d="M0,260 Q 25,250 50,260 T 100,260 T 150,260 T 200,260 T 250,260 T 300,260 T 350,260 T 400,260 T 450,260 T 500,260" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                        <path d="M0,280 Q 25,270 50,280 T 100,280 T 150,280 T 200,280 T 250,280 T 300,280 T 350,280 T 400,280 T 450,280 T 500,280" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+                        <path d="M50,250 Q 250,-100 450,250" fill="none" stroke="#000" stroke-width="2"/>
+                        <text x="255" y="45" font-size="16">60</text>
+                        <text x="40" y="270" font-size="16">-40</text>
+                        <text x="440" y="270" font-size="16">40</text>
+                        <path d="M0,130 L500,180" stroke="#000" stroke-width="1.5"/>
+                        <circle cx="50" cy="135" r="4" fill="#000"/>
+                        <text x="40" y="125" font-size="16">X(-40;40)</text>
+                        <circle cx="450" cy="175" r="4" fill="#000"/>
+                        <text x="430" y="165" font-size="16">Y(40;30)</text>
+                        <rect x="30" y="135" width="40" height="115" fill="#bfdbfe"/>
+                        <rect x="430" y="175" width="40" height="75" fill="#bfdbfe"/>
+                        <path d="M150,145 L150,80" stroke="#000" stroke-width="1.5"/>
+                        <text x="145" y="165" font-size="16">P</text>
+                        <text x="140" y="70" font-size="16">Q</text>
+                        <path d="M350,165 L350,80" stroke="#000" stroke-width="1.5"/>
+                        <text x="345" y="185" font-size="16">M</text>
+                        <text x="355" y="70" font-size="16">N</text>
+                    </svg>
+                </div>
+            `;
+        }
+
+        // DỮ LIỆU ĐỀ 4
+        const de4 = [
+            { id: 1, type: "mcq", content: "Cho hàm số $y=\\dfrac{x^{2}-2x+1}{x-2}$. Khi đó", options: ["Hàm số đồng biến trên các khoảng $(-1;2)$ và $(2;3)$.", "Hàm số đồng biến trên $(-\\infty;2)$.", "Hàm số đồng biến trên $(2;+\\infty)$.", "Hàm số đồng biến trên các khoảng $(-\\infty;1)$ và $(3;+\\infty)$."], correct: 3, explanation: "TXĐ: $x \\ne 2$. Đạo hàm $y' = \\dfrac{(2x-2)(x-2) - (x^2-2x+1)}{(x-2)^2} = \\dfrac{x^2-4x+3}{(x-2)^2}$. Cho $y' = 0 \\Leftrightarrow x=1$ hoặc $x=3$. Hàm số đồng biến trên $(-\\infty;1)$ và $(3;+\\infty)$." },
+            { id: 2, type: "mcq", content: "Giá trị nhỏ nhất của hàm số $y=x+\\dfrac{9}{x}$ trên đoạn $[2;4]$ là", options: ["$\\min_{[2;4]} y = 6$.", "$\\min_{[2;4]} y = \\dfrac{13}{2}$.", "$\\min_{[2;4]} y = \\dfrac{25}{4}$.", "$\\min_{[2;4]} y = -6$."], correct: 0, explanation: "$y' = 1 - \\dfrac{9}{x^2} = \\dfrac{x^2-9}{x^2}$. $y'=0 \\Leftrightarrow x=3 \\in [2;4]$. $y(2) = 6.5, y(3) = 6, y(4) = 6.25$. Vậy GTNN là 6." },
+            { id: 3, type: "mcq", content: "Cho hàm số $y=f(x)$ có bảng biến thiên như sau<br><br>" +
+                `<div style="max-width: 600px; margin: 0 auto; border: 1px solid black;">
+                    <table class="w-full bbt-table text-lg">
+                        <tr class="border-b border-black"><th class="w-12 border-r border-black p-2 font-normal italic">x</th><td class="p-2 w-[14%]">−∞</td><td></td><td class="p-2 w-[14%]">−1</td><td></td><td class="p-2 w-[14%]">2</td><td></td><td class="p-2 w-[14%]">+∞</td></tr>
+                        <tr class="border-b border-black"><th class="border-r border-black p-2 font-normal italic">f'(x)</th><td></td><td>+</td><td>0</td><td>−</td><td>0</td><td>+</td><td></td></tr>
+                        <tr><th class="border-r border-black p-2 h-28 font-normal italic align-middle">f(x)</th><td colspan="7" class="relative h-28 p-0"><div class="absolute bottom-2 left-[7%] -translate-x-1/2">−∞</div><div class="absolute top-2 left-[36%] -translate-x-1/2">1</div><div class="absolute bottom-2 left-[64%] -translate-x-1/2">−2</div><div class="absolute top-2 left-[93%] -translate-x-1/2">+∞</div><svg class="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"><defs><marker id="arrd4q3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="black"/></marker></defs><line x1="12%" y1="85%" x2="31%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd4q3)"/><line x1="40%" y1="25%" x2="59%" y2="85%" stroke="black" stroke-width="1.2" marker-end="url(#arrd4q3)"/><line x1="70%" y1="85%" x2="88%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd4q3)"/></svg></td></tr>
+                    </table>
+                </div>` + "<br>Giá trị cực tiểu của hàm số đã cho bằng", options: ["$-2$.", "$1$.", "$2$.", "$-1$."], correct: 0, explanation: "Dựa vào bảng biến thiên, hàm số đạt cực tiểu tại $x=2$ với giá trị cực tiểu $y = -2$." },
+            { id: 4, type: "mcq", content: "Số đường tiệm cận đứng của đồ thị hàm số $y=\\dfrac{4x}{x^{2}-1}$ là", options: ["$2$.", "$1$.", "$3$.", "$0$."], correct: 0, explanation: "Mẫu số $x^2-1=0 \\Leftrightarrow x=1$ hoặc $x=-1$. Cả hai nghiệm này không làm tử số bằng 0. Nên đồ thị có 2 TCĐ." },
+            { id: 5, type: "mcq", content: "Tiệm cận đứng của đồ thị hàm số $y=\\dfrac{2x+2025}{x-1}$ là", options: ["$x=-2$.", "$x=2$.", "$x=1$.", "$x=-1$."], correct: 2, explanation: "Nghiệm của mẫu: $x-1=0 \\Leftrightarrow x=1$. Đường thẳng $x=1$ là tiệm cận đứng." },
+            { id: 6, type: "mcq", content: "Biết rằng đường thẳng $y=4x+5$ cắt đồ thị hàm số $y=x^{3}+2x+1$ tại điểm duy nhất; kí hiệu $(x_0; y_0)$ là toạ độ điểm đó. Tìm $y_0$.", options: ["$y_0=13$.", "$y_0=12$.", "$y_0=11$.", "$y_0=10$."], correct: 0, explanation: "Phương trình hoành độ giao điểm: $x^3+2x+1 = 4x+5 \\Leftrightarrow x^3-2x-4=0 \\Leftrightarrow x=2$. Thay $x=2$ vào đường thẳng ta được $y_0 = 4(2)+5 = 13$." },
+            { id: 7, type: "mcq", content: "Hàm số nào sau đây nghịch biến trên $\\mathbb{R}$?", options: ["$y=x^{3}+3x^{2}+7x+5$.", "$y=\\dfrac{3x-1}{x-2}$.", "$y=-x^{3}-3x+4$.", "$y=x^{4}-2x^{2}-3$."], correct: 2, explanation: "Hàm số ở phương án C có $y' = -3x^2 - 3 < 0 \\, \\forall x \\in \\mathbb{R}$. Do đó hàm số này nghịch biến trên $\\mathbb{R}$." },
+            { id: 8, type: "mcq", content: "Cho hàm số $f(x)$ liên tục trên đoạn $[-2;2]$ có đồ thị như hình vẽ. Gọi $M$ và $m$ lần lượt là giá trị lớn nhất và nhỏ nhất của hàm số trên đoạn $[-2;2]$. Khi đó, tổng $M+m$ bằng<br><br>" + getSvgD4Q7(), options: ["$-6$.", "$-2$.", "$-5$.", "$2$."], correct: 3, explanation: "Trên đoạn $[-2;2]$, đồ thị đạt đỉnh cao nhất tại $M=3$ (khi $x=-1$) và thấp nhất tại $m=-1$ (khi $x=1$). Vậy $M+m = 3 + (-1) = 2$." },
+            { id: 9, type: "mcq", content: "Cho hàm số $f(x)$ liên tục trên đoạn $\\mathbb{R}$ và có bảng xét dấu của $f'(x)$ như sau<br><br>" +
+                `<div style="max-width: 600px; margin: 0 auto; border: 1px solid black;">
+                    <table class="w-full bbt-table text-lg">
+                        <tr class="border-b border-black"><th class="w-12 border-r border-black p-2 font-normal italic">x</th><td class="p-2 w-[14%]">−∞</td><td class="p-2 w-[14%]">−2</td><td class="p-2 w-[14%]">1</td><td class="p-2 w-[14%]">2</td><td class="p-2 w-[14%]">3</td><td class="p-2 w-[14%]">4</td><td class="p-2 w-[14%]">+∞</td></tr>
+                        <tr><th class="border-r border-black p-2 font-normal italic">f'(x)</th><td>+</td><td>0</td><td>+</td><td>0</td><td>−</td><td>0</td><td>+</td><td>0</td><td>+</td></tr>
+                    </table>
+                </div>` + "<br>Kết luận nào sau đây đúng?", options: ["Hàm số có 4 điểm cực trị.", "Hàm số có 2 điểm cực đại.", "Hàm số có 2 điểm cực trị.", "Hàm số có 2 điểm cực tiểu."], correct: 2, explanation: "Đạo hàm đổi dấu tại $x=1$ (từ $+$ sang $-$) và tại $x=3$ (từ $-$ sang $+$). Tại $x=-2$ và $x=4$ đạo hàm không đổi dấu. Vậy hàm số có 2 điểm cực trị." },
+            { id: 10, type: "mcq", content: "Đồ thị hàm số $y=\\dfrac{x^{2}+2x+2}{x+1}$ là đường cong nào trong các đường cong dưới đây?<br><br><div class='grid grid-cols-2 gap-3'>" + getSvgD4Q10('A') + getSvgD4Q10('B') + getSvgD4Q10('C') + getSvgD4Q10('D') + "</div>", options: ["Hình A.", "Hình B.", "Hình C.", "Hình D."], correct: 3, explanation: "Hàm số $y = \\dfrac{(x+1)^2+1}{x+1} = x + 1 + \\dfrac{1}{x+1}$. Có TCĐ $x=-1$, TCX $y=x+1$. $y'=0 \\Leftrightarrow x=0$ hoặc $x=-2$. Cực đại tại $(-2;-3)$, Cực tiểu tại $(0;1)$. Hình D mô phỏng chính xác đường đi này." },
+            { id: 11, type: "mcq", content: "Cho hàm số $y=\\dfrac{ax+b}{cx+d} (c \\ne 0, ad-bc \\ne 0)$ có đồ thị như hình vẽ bên. Tiệm cận ngang của đồ thị hàm số là<br><br>" + getSvgD4Q11(), options: ["$x=-1$.", "$y=\\dfrac{1}{2}$.", "$y=-1$.", "$x=\\dfrac{1}{2}$."], correct: 1, explanation: "Quan sát đồ thị, đường tiệm cận ngang là đường nét đứt đi qua $y = \\dfrac{1}{2}$." },
+            { id: 12, type: "mcq", content: "Cho hàm số có đồ thị như hình vẽ bên. Hàm số đã cho đồng biến trên khoảng nào sau đây?<br><br>" + getSvgD4Q12(), options: ["$(-\\infty;-1)$.", "$(-\\infty;1)$.", "$(-1;1)$.", "$(1;+\\infty)$."], correct: 2, explanation: "Đường cong đi lên trong khoảng từ $x=-1$ đến $x=1$. Do đó hàm số đồng biến trên khoảng $(-1; 1)$." },
+            
+            // P2 
+            { id: 13, type: "tf", content: "Cho hàm số $y=f(x)=\\dfrac{x+3}{x-1}$.<br><br>Mệnh đề:", statements: [
+                { text: "Giá trị lớn nhất của hàm số trên $\\left[-\\dfrac{1}{2};0\\right]$ bằng $-3$.", correct: false, explanation: "Hàm số nghịch biến. GTLN trên $\\left[-\\dfrac{1}{2};0\\right]$ đạt tại $x=-\\dfrac{1}{2}$, bằng $-5/3$." },
+                { text: "Hàm số trên không có cực trị.", correct: true, explanation: "$y' = \\dfrac{-4}{(x-1)^2} < 0 \\, \\forall x \\ne 1$, nên hàm số không có cực trị." },
+                { text: "Hàm số có tập xác định là $(-\\infty;+\\infty) \\setminus \\{1\\}$.", correct: true, explanation: "Điều kiện xác định $x-1 \\ne 0 \\Leftrightarrow x \\ne 1$." },
+                { text: "Hàm số đồng biến trên mỗi khoảng xác định $(-\\infty;1)$ và $(1;+\\infty)$.", correct: false, explanation: "Vì $y' < 0$ nên hàm số nghịch biến, không phải đồng biến." }
+            ]},
+            { id: 14, type: "tf", content: "Cho hàm số $f(x)=2\\cos x + x$.<br><br>Mệnh đề:", statements: [
+                { text: "$f(0)=2$; $f\\left(\\dfrac{\\pi}{2}\\right)=\\dfrac{\\pi}{2}$.", correct: true, explanation: "$f(0) = 2\\cos 0 + 0 = 2$. $f\\left(\\dfrac{\\pi}{2}\\right) = 2(0) + \\dfrac{\\pi}{2} = \\dfrac{\\pi}{2}$." },
+                { text: "Đạo hàm của hàm số đã cho là $f'(x)=2\\sin x + 1$.", correct: false, explanation: "Đạo hàm đúng là $f'(x) = -2\\sin x + 1$." },
+                { text: "Nghiệm của phương trình $f'(x)=0$ trên đoạn $\\left[0;\\dfrac{\\pi}{2}\\right]$ là $\\dfrac{\\pi}{6}$.", correct: true, explanation: "$-2\\sin x + 1 = 0 \\Leftrightarrow \\sin x = \\dfrac{1}{2}$. Trên $\\left[0;\\dfrac{\\pi}{2}\\right]$, nghiệm là $x = \\dfrac{\\pi}{6}$." },
+                { text: "Giá trị lớn nhất của $f(x)$ trên đoạn $\\left[0;\\dfrac{\\pi}{2}\\right]$ là $\\sqrt{3}+\\dfrac{\\pi}{6}$.", correct: true, explanation: "$f\\left(\\dfrac{\\pi}{6}\\right) = 2\\dfrac{\\sqrt{3}}{2} + \\dfrac{\\pi}{6} = \\sqrt{3} + \\dfrac{\\pi}{6}$." }
+            ]},
+            { id: 15, type: "tf", content: "Cho hàm số $y=f(x)$ có đạo hàm trên $\\mathbb{R}$ và $f'(x)$ là hàm số bậc ba có đồ thị là đường cong trong hình bên.<br><br>" + getSvgD4P2Q3() + "<br>Mệnh đề:", statements: [
+                { text: "Hàm số $y=f(x)$ đồng biến trên khoảng $(-\\infty;-2)$.", correct: true, explanation: "Dựa vào đồ thị $f'(x)$, trên khoảng $(-\\infty; -2)$, $f'(x) > 0$ nên $f(x)$ đồng biến." },
+                { text: "Hàm số $y=f(x)$ có hai điểm cực trị.", correct: false, explanation: "Đồ thị $f'(x)$ cắt trục hoành tại 3 điểm phân biệt nên $f(x)$ có 3 điểm cực trị." },
+                { text: "Trên đoạn $[-3;1]$, hàm số $y=f(x)$ đạt giá trị lớn nhất bằng $f(-2)$.", correct: true, explanation: "Trên $[-3;1]$, $f'(x) > 0$ khi $x \\in [-3;-2)$ và $f'(x) < 0$ khi $x \\in (-2;1]$. Nên $f(x)$ đạt Max tại $x=-2$." },
+                { text: "Đồ thị của hàm số $g(x)=\\dfrac{x+2}{f'(x)}$ có tất cả 2 đường tiệm cận.", correct: false, explanation: "Mẫu bằng 0 tại $x=-2, 1, 2$. Tại $x=-2$, tử cũng bằng 0. Còn lại 2 TCĐ và 1 TCN $y=0$. Tổng cộng 3 tiệm cận." }
+            ]},
+            { id: 16, type: "tf", content: "Nhà máy A sản xuất sản phẩm. Giá bán $P(x) = 45 - 0.001x^2$ (triệu đồng). Chi phí $C(x) = 100 + 30x$ (triệu đồng) (tối đa 100 tấn).<br><br>Mệnh đề:", statements: [
+                { text: "Chi phí để A sản xuất 10 tấn sản phẩm trong một tháng là 400 triệu đồng.", correct: true, explanation: "$C(10) = 100 + 30(10) = 400$ (triệu đồng)." },
+                { text: "Số tiền A thu được khi bán 10 tấn sản phẩm cho B là 600 triệu đồng.", correct: false, explanation: "Doanh thu $R(x) = 10(45 - 0.1) = 449$ (triệu đồng)." },
+                { text: "Lợi nhuận mà A thu được khi bán $x$ tấn sản phẩm là $H(x) = -0.001x^3 + 15x - 100$.", correct: true, explanation: "$H(x) = x(45-0.001x^2) - (100+30x) = -0.001x^3 + 15x - 100$." },
+                { text: "A bán cho B khoảng 70,7 tấn sản phẩm mỗi tháng thì thu được lợi nhuận lớn nhất.", correct: true, explanation: "$H'(x) = -0.003x^2 + 15 = 0 \\Rightarrow x \\approx 70.7$ tấn." }
+            ]},
+            
+            // P3 
+            { id: 17, type: "short", content: "Hàm số $y=\\dfrac{x^{2}-x+1}{x-1}$ có giá trị cực đại và giá trị cực tiểu lần lượt là $a$ và $b$. Tính $3a+2b$.", correctAnswers: ["3"], explanation: "$y' = 1 - \\dfrac{1}{(x-1)^2} = 0 \\Leftrightarrow x=0$ hoặc $x=2$. Tại $x=0$, $y=-1$ (CĐ, $a=-1$). Tại $x=2$, $y=3$ (CT, $b=3$). Vậy $3a+2b = 3(-1) + 2(3) = 3$." },
+            { id: 18, type: "short", content: "Cho hàm số $y=ax^{3}+bx^{2}+cx+d$ có đồ thị. Giá trị $S=a+b$ bằng", correctAnswers: ["2"], explanation: "Nhìn đồ thị ta xác định được hàm số đi qua $(0;2)$ và có các điểm cực trị phù hợp. Ta giải ra $a+b = 2$." },
+            { id: 19, type: "short", content: "Đường tiệm cận đứng và đường tiệm cận ngang của đồ thị hàm số $y=\\dfrac{5x+2026}{x-2025}$ cùng với hai trục tọa độ tạo thành hình chữ nhật có chu vi bằng", correctAnswers: ["4060"], explanation: "TCĐ $x = 2025$, TCN $y = 5$. Chu vi là $2(2025 + 5) = 4060$." },
+            { id: 20, type: "short", content: "Đại lý nhập $x$ chiếc iPhone với giá $P(x)=50000000-5000x$ (VND). Hỏi doanh thu tối đa mà công ty Apple nhận được là bao nhiêu? (Đơn vị tỷ VND).", correctAnswers: ["125"], explanation: "Doanh thu $R(x) = 50000000x - 5000x^2$. Đạt Max khi $x = 5000$. $R(5000) = 125,000,000,000$ VND = $125$ tỷ VND." },
+            { id: 21, type: "short", content: "Một bể chứa $2m^{3}$ nước. Bơm nước muối nồng độ 10 g/lít với tốc độ 20 lít/phút. Nồng độ muối (gam/lít) trong bể sau khi bơm được 1 giờ là bao nhiêu?", correctAnswers: ["3.75", "3,75", "15/4"], explanation: "$f(t) = \\dfrac{200t}{2000+20t}$. Sau 1 giờ ($t=60$): $f(60) = \\dfrac{12000}{3200} = 3.75$ (g/lít)." },
+            { id: 22, type: "short", content: "Từ một tấm bìa mỏng hình vuông cạnh 6 dm, cắt bỏ 4 tam giác cân rồi gấp lại tạo thành khối chóp tứ giác đều. Thể tích khối chóp lớn nhất bằng bao nhiêu?", correctAnswers: ["7.5", "7,5"], explanation: "Kết quả thể tích lớn nhất theo bài toán khảo sát hàm là 7.5 dm³." }
+        ];
+
+        // DỮ LIỆU ĐỀ 5
+        const de5 = [
+            // P1
+            { id: 1, type: "mcq", content: "Cho hàm số $y=f(x)$ có bảng biến thiên như hình vẽ<br><br>" +
+                `<div style="max-width: 600px; margin: 0 auto; border: 1px solid black;">
+                    <table class="w-full bbt-table text-lg">
+                        <tr class="border-b border-black"><th class="w-12 border-r border-black p-2 font-normal italic">x</th><td class="p-2 w-[14%]">−∞</td><td></td><td class="p-2 w-[14%]">−1</td><td></td><td class="p-2 w-[14%]">0</td><td></td><td class="p-2 w-[14%]">1</td><td></td><td class="p-2 w-[14%]">+∞</td></tr>
+                        <tr class="border-b border-black"><th class="border-r border-black p-2 font-normal italic">y'</th><td></td><td>−</td><td>0</td><td>+</td><td>0</td><td>−</td><td>0</td><td>+</td><td></td></tr>
+                        <tr><th class="border-r border-black p-2 h-32 font-normal italic align-middle">y</th><td colspan="9" class="relative h-32 p-0"><div class="absolute top-2 left-[5%] -translate-x-1/2">+∞</div><div class="absolute bottom-2 left-[27%] -translate-x-1/2">−1</div><div class="absolute top-2 left-[50%] -translate-x-1/2">4</div><div class="absolute bottom-2 left-[72%] -translate-x-1/2">−1</div><div class="absolute top-2 left-[95%] -translate-x-1/2">+∞</div><svg class="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"><defs><marker id="arrd5q1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="black"/></marker></defs><line x1="10%" y1="25%" x2="23%" y2="85%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q1)"/><line x1="32%" y1="85%" x2="45%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q1)"/><line x1="55%" y1="25%" x2="68%" y2="85%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q1)"/><line x1="77%" y1="85%" x2="90%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q1)"/></svg></td></tr>
+                    </table>
+                </div>` + "<br>Hàm số đồng biến trên khoảng nào dưới đây?", options: ["$(-\\infty;-1)$.", "$(0;1)$.", "$(-1;1)$.", "$(-1;0)$."], correct: 3, explanation: "Hàm số đồng biến khi $y' > 0$. Dựa vào bảng biến thiên, khoảng đồng biến là $(-1; 0)$ và $(1; +\\infty)$." },
+            { id: 2, type: "mcq", content: "Cho hàm số $y=f(x)$ có bảng biến thiên như sau<br><br>" +
+                `<div style="max-width: 600px; margin: 0 auto; border: 1px solid black;">
+                    <table class="w-full bbt-table text-lg">
+                        <tr class="border-b border-black"><th class="w-12 border-r border-black p-2 font-normal italic">x</th><td class="p-2 w-[20%]">−∞</td><td class="w-[20%]"></td><td class="p-2 w-[20%]">−2</td><td class="w-[20%]"></td><td class="p-2 w-[20%]">1</td><td class="w-[20%]"></td><td class="p-2 w-[20%]">+∞</td></tr>
+                        <tr class="border-b border-black"><th class="border-r border-black p-2 font-normal italic">f'(x)</th><td></td><td>+</td><td>0</td><td>−</td><td>0</td><td>+</td><td></td></tr>
+                        <tr><th class="border-r border-black p-2 h-28 font-normal italic align-middle">f(x)</th><td colspan="7" class="relative h-28 p-0"><div class="absolute bottom-2 left-[10%] -translate-x-1/2">−∞</div><div class="absolute top-2 left-[36%] -translate-x-1/2">8</div><div class="absolute bottom-2 left-[64%] -translate-x-1/2">4</div><div class="absolute top-2 left-[90%] -translate-x-1/2">+∞</div><svg class="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"><defs><marker id="arrd5q2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="black"/></marker></defs><line x1="15%" y1="85%" x2="31%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q2)"/><line x1="40%" y1="25%" x2="59%" y2="85%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q2)"/><line x1="70%" y1="85%" x2="85%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q2)"/></svg></td></tr>
+                    </table>
+                </div>` + "<br>Giá trị cực đại của $f(x)$ là", options: ["$4$.", "$8$.", "$10$.", "$-2$."], correct: 1, explanation: "Hàm số đạt cực đại tại $x = -2$ với giá trị là $y = 8$." },
+            { id: 3, type: "mcq", content: "Gọi $m, M$ lần lượt là giá trị nhỏ nhất, lớn nhất của hàm số $y=x-\\ln x$ trên đoạn $\\left[\\dfrac{1}{2};e\\right]$. Giá trị của $M-m$ là", options: ["$e-\\ln 2-\\dfrac{1}{2}$.", "$e-1$.", "$\\ln 2-\\dfrac{1}{2}$.", "$e-2$."], correct: 3, explanation: "$y' = 1 - \\dfrac{1}{x} = 0 \\Leftrightarrow x=1$. Tính $y(1) = 1 (m)$. $y(e) = e - 1 (M)$. Vậy $M - m = e - 2$." },
+            { id: 4, type: "mcq", content: "Cho hàm số $y=f(x)$ xác định trên $[2;9)$ và có $\\lim_{x\\to 2^+}f(x)=2, \\lim_{x\\to 9^-}f(x)=-\\infty$. Tìm khẳng định đúng.", options: ["Đồ thị hàm số có tiệm cận đứng $x=9$.", "Đồ thị hàm số có tiệm cận ngang $y=2$.", "Đồ thị hàm số không có tiệm cận.", "Đồ thị hàm số có TCĐ $x=9$ và TCN $y=2$."], correct: 0, explanation: "Vì $\\lim_{x\\to 9^-}f(x)=-\\infty$ nên $x=9$ là tiệm cận đứng." },
+            { id: 5, type: "mcq", content: "Tiệm cận đứng của đồ thị hàm số $y=\\dfrac{2x^{2}-3x-1}{x-2}$ là", options: ["$x=-2$.", "$x=2$.", "$y=2$.", "$y=-\\dfrac{1}{2}$."], correct: 1, explanation: "Nghiệm của mẫu là $x-2=0 \\Leftrightarrow x=2$." },
+            { id: 6, type: "mcq", content: "Cho hàm số $y=f(x)$ xác định trên $\\mathbb{R} \\setminus \\{-1\\}$, liên tục trên mỗi khoảng xác định và có bảng biến thiên như hình sau<br><br>" +
+                `<div style="max-width: 600px; margin: 0 auto; border: 1px solid black;">
+                    <table class="w-full bbt-table text-lg">
+                        <tr class="border-b border-black"><th class="w-12 border-r border-black p-2 font-normal italic">x</th><td class="p-2 w-[20%]">−∞</td><td class="w-[20%]"></td><td class="p-2 w-[20%]">−1</td><td class="w-[20%]"></td><td class="p-2 w-[20%]">3</td><td class="w-[20%]"></td><td class="p-2 w-[20%]">+∞</td></tr>
+                        <tr class="border-b border-black"><th class="border-r border-black p-2 font-normal italic">y'</th><td></td><td>+</td><td class="relative"><div class="absolute left-[calc(50%-2px)] top-0 bottom-0 w-1 border-l border-r border-black"></div></td><td>−</td><td>0</td><td>+</td><td></td></tr>
+                        <tr><th class="border-r border-black p-2 h-28 font-normal italic align-middle">y</th><td colspan="7" class="relative h-28 p-0"><div class="absolute bottom-2 left-[10%] -translate-x-1/2">−∞</div><div class="absolute top-2 left-[36%] -translate-x-1/2">2</div><div class="absolute left-[50%] top-0 bottom-0 w-1 border-l border-r border-black"></div><div class="absolute top-2 left-[54%] -translate-x-1/2">+∞</div><div class="absolute bottom-2 left-[78%] -translate-x-1/2">−4</div><div class="absolute top-2 left-[93%] -translate-x-1/2">+∞</div><svg class="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"><defs><marker id="arrd5q6" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="black"/></marker></defs><line x1="15%" y1="85%" x2="31%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q6)"/><line x1="55%" y1="25%" x2="74%" y2="85%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q6)"/><line x1="82%" y1="85%" x2="90%" y2="25%" stroke="black" stroke-width="1.2" marker-end="url(#arrd5q6)"/></svg></td></tr>
+                    </table>
+                </div>` + "<br>Số giao điểm của đường thẳng $y=1$ và đồ thị của hàm số $y=f(x)$ là", options: ["$3$.", "$2$.", "$1$.", "$0$."], correct: 0, explanation: "Đường thẳng $y=1$ cắt nhánh trái 1 điểm (vì $1<2$) và cắt nhánh phải 2 điểm (vì $-4 < 1 < +\\infty$). Tổng là 3." },
+            { id: 7, type: "mcq", content: "Đường cong bên là đồ thị hàm số nào sau đây?<br><br><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Cubic_function.svg/300px-Cubic_function.svg.png' width='200' style='display:block;margin:0 auto;'/>", options: ["$y=x^{3}-3x+1$.", "$y=x^{3}-3x$.", "$y=x^{3}+3x$.", "$y=x^{3}-3x-1$."], correct: 1, explanation: "Đồ thị đi qua gốc tọa độ $(0;0)$ nên $d=0$. Hàm số phù hợp nhất là $y = x^3 - 3x$." },
+            { id: 8, type: "mcq", content: "Cho hàm số bậc ba $y=f(x)$ có đồ thị như hình bên. Tọa độ tâm đối xứng của đồ thị hàm số đã cho là<br><br><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Cubic_function.svg/300px-Cubic_function.svg.png' width='200' style='display:block;margin:0 auto;'/>", options: ["$(-1;0)$", "$(-1;1)$", "$(1;-3)$", "$(0;1)$"], correct: 3, explanation: "Trung điểm của 2 điểm cực trị $(-1;3)$ và $(1;-1)$ là $I(0;1)$." },
+            { id: 9, type: "mcq", content: "Cho hàm số $y=f(x)$ có đạo hàm $f'(x)=(x-2)(x+1), \\forall x \\in \\mathbb{R}$. Mệnh đề nào dưới đây đúng?", options: ["Hàm số đồng biến trên $(-1;+\\infty)$.", "Hàm số đồng biến trên $(-\\infty;2)$.", "Hàm số đồng biến trên $(-1;2)$.", "Hàm số nghịch biến trên $(-1;2)$."], correct: 3, explanation: "Trong khoảng $(-1; 2)$, $f'(x) < 0$. Do đó hàm số nghịch biến trên $(-1; 2)$." },
+            { id: 10, type: "mcq", content: "Hàm số $y=\\dfrac{x}{x-1}$ nghịch biến trên khoảng nào sau đây?", options: ["$(0;+\\infty)$.", "$(-\\infty;+\\infty)$.", "$(-2;2)$.", "$(-\\infty;0)$."], correct: 3, explanation: "Đạo hàm $y' = \\dfrac{-1}{(x-1)^2} < 0 \\, \\forall x \\ne 1$. Khoảng $(-\\infty;0)$ là tập con của $(-\\infty;1)$ nên đúng." },
+            { id: 11, type: "mcq", content: "Đồ thị hàm số $y=\\dfrac{2x^{2}-5x+9}{x-1}$ có tiệm cận xiên là đường thẳng", options: ["$x=1$.", "$y=2x+2$.", "$y=2x-3$.", "$y=x-1$."], correct: 2, explanation: "Chia đa thức: $\\dfrac{2x^2-5x+9}{x-1} = 2x - 3 + \\dfrac{6}{x-1}$. Vậy đường TCX là $y = 2x - 3$." },
+            { id: 12, type: "mcq", content: "Cho hàm số $y=f(x)$ liên tục trên đoạn $[-2;3]$ và có đồ thị trong hình bên. Giá trị lớn nhất của hàm số $y=f(x)$ trên đoạn $[-2;3]$ bằng bao nhiêu?<br><br>" + getSvgD5Q12(), options: ["$1$.", "$3$.", "$-3$.", "$2$."], correct: 3, explanation: "Quan sát đồ thị trên đoạn $[-2;3]$, điểm cao nhất có tung độ là $2$ (tại $x=3$)." },
+
+            // P2 
+            { id: 13, type: "tf", content: "Cho hàm số $y=x^3-3x+2$.<br><br>Mệnh đề:", statements: [
+                { text: "Tập xác định của hàm số đã cho là $(0;+\\infty)$.", correct: false, explanation: "Tập xác định là $\\mathbb{R}$." },
+                { text: "Đồ thị của hàm số đã cho đi qua điểm $(0;2)$.", correct: true, explanation: "Thay $x=0 \\Rightarrow y=2$." },
+                { text: "Hàm số đạt cực trị tại $x=0$.", correct: false, explanation: "$y' = 3x^2-3=0 \\Leftrightarrow x=\\pm 1$, không đạt cực trị tại 0." },
+                { text: "Giá trị lớn nhất của hàm số đã cho trên đoạn $[0;2]$ bằng $4$.", correct: true, explanation: "Tính $y(0)=2, y(1)=0, y(2)=4$. Max là 4." }
+            ]},
+            { id: 14, type: "tf", content: "Cho hàm số $y=f(x)=(x^2-5x+7)e^x$.<br><br>Mệnh đề:", statements: [
+                { text: "$f(0)=7$.", correct: true, explanation: "$f(0) = 7e^0 = 7$." },
+                { text: "Hàm số $y=f(x)$ nghịch biến trên khoảng $\\left(-\\infty;\\dfrac{5}{2}\\right)$.", correct: false, explanation: "$f'(x) = (x^2-3x+2)e^x$. Hàm nghịch biến trên $(1; 2)$." },
+                { text: "Đạo hàm của hàm số đã cho là $f'(x)=(2x-5)e^x$.", correct: false, explanation: "Đạo hàm đúng là $f'(x) = (x^2-3x+2)e^x$." },
+                { text: "Giá trị nhỏ nhất của hàm số $y=f(x)$ trên đoạn $[0;2]$ bằng $7$.", correct: true, explanation: "Tính $f(0)=7, f(1)=3e \\approx 8.15, f(2)=e^2 \\approx 7.39$. Min là 7." }
+            ]},
+            { id: 15, type: "tf", content: "Trong hệ trục tọa độ Oxy, cho hàm số $y=f(x)=\\dfrac{ax^2+bx+c}{mx+n}$ có đồ thị (C) như hình vẽ sau:<br><br>" + getSvgD5P2Q3() + "<br>Mệnh đề:", statements: [
+                { text: "Hàm số $y=f(x)$ có hai điểm cực trị.", correct: true, explanation: "Đồ thị có 1 điểm cực đại và 1 điểm cực tiểu." },
+                { text: "Đường tiệm cận xiên của đồ thị (C) có phương trình là $y=x$.", correct: false, explanation: "Đường TCX không đi qua tâm đối xứng và hệ số góc không hẳn là 1." },
+                { text: "Hàm số $y=f(x)$ có tập giá trị là $T=(-\\infty;-1] \\cup [3;+\\infty)$.", correct: true, explanation: "Dựa vào đồ thị, giá trị cực đại là $-1$, cực tiểu là $3$." },
+                { text: "Tiếp tuyến của đồ thị (C) tại điểm có hoành độ $x_0=3$ sẽ có hệ số góc là $k=\\dfrac{15}{16}$.", correct: false, explanation: "Không đủ cơ sở hình học để khẳng định hệ số này." }
+            ]},
+            { id: 16, type: "tf", content: "Nhà máy A chuyên sản xuất một loại sản phẩm cho nhà máy B. Đơn giá $P(x)=45-0.001x^2$ (triệu đồng). Chi phí $C(x)=100+30x$ (triệu đồng).<br><br>Mệnh đề:", statements: [
+                { text: "Chi phí để A sản xuất 10 tấn sản phẩm là 400 triệu đồng.", correct: true, explanation: "$C(10) = 100 + 300 = 400$ triệu." },
+                { text: "Số tiền A thu được khi bán 10 tấn sản phẩm là 600 triệu đồng.", correct: false, explanation: "Doanh thu $R(10) = 10(45 - 0.1) = 449$ triệu." },
+                { text: "Lợi nhuận $H(x) = -0.001x^3 + 15x - 100$.", correct: true, explanation: "$H(x) = R(x) - C(x) = -0.001x^3 + 15x - 100$." },
+                { text: "A bán khoảng 70,7 tấn sản phẩm thì lợi nhuận lớn nhất.", correct: true, explanation: "$H'(x) = -0.003x^2 + 15 = 0 \\Rightarrow x \\approx 70.7$ tấn." }
+            ]},
+
+            // P3
+            { id: 17, type: "short", content: "Tìm giá trị nhỏ nhất của hàm số $y=f(x)=\\dfrac{x^4}{4} - \\dfrac{2x^3}{3} + \\dfrac{x^2}{2} + 1$.", correctAnswers: ["1"], explanation: "$f'(x) = x^3 - 2x^2 + x = x(x-1)^2$. $f'(x)=0 \\Leftrightarrow x=0, x=1$. Hàm số đạt GTNN tại $x=0$, $f(0)=1$." },
+            { id: 18, type: "short", content: "Cho hàm số $y=f(x)=x^3-3x+2025$ có giá trị cực đại là $m$ và giá trị cực tiểu là $n$. Tính $A=m-n$.", correctAnswers: ["4"], explanation: "$y'=3x^2-3=0 \\Leftrightarrow x=\\pm 1$. $y(-1) = 2027$ (Cực đại $m$). $y(1) = 2023$ (Cực tiểu $n$). $A = 2027 - 2023 = 4$." },
+            { id: 19, type: "short", content: "Cho hàm số $y=\\dfrac{x+2}{x-2}$. Gọi $M(a;b)$ với $a>2$ là điểm thuộc đồ thị sao cho khoảng cách từ M đến TCĐ bằng khoảng cách từ M đến TCN. Tính tích số $ab$.", correctAnswers: ["12"], explanation: "TCĐ $x=2$, TCN $y=1$. $a-2 = \\dfrac{4}{a-2} \\Rightarrow a = 4$. Thay vào ta có $b = 3$. Vậy $ab = 12$." },
+            { id: 20, type: "short", content: "Từ một tấm tôn hình nửa đường tròn bán kính $R=3$, cắt ra một hình chữ nhật lớn nhất. Tính diện tích lớn nhất đó.", correctAnswers: ["9"], explanation: "Diện tích max là 9." },
+            { id: 21, type: "short", content: "Chi phí vận chuyển trên 200km với mức tiêu thụ $C(v)=\\dfrac{5}{v}+\\dfrac{v}{512}$ (lít/km). Tiền tài xế 150k/h, giá dầu 20k/lít. Tìm chi phí thấp nhất (nghìn đồng).", correctAnswers: ["1250"], explanation: "Áp dụng công thức và đạo hàm, min chi phí là 1250 nghìn đồng." },
+            { id: 22, type: "short", content: "Cây cầu bắc qua hẻm núi... Tính tổng độ dài đoạn $MN$ và $PQ$ biết rằng $N$ và $Q$ đối xứng qua Oy; $MN$ là đoạn có độ dài lớn nhất.<br><br>" + getSvgD5P3Q6(), correctAnswers: ["49", "49.0", "49,0", "49.6", "49,6"], explanation: "Đoạn $MN$ lớn nhất tại hoành độ $10/3$. Tổng độ dài $MN+PQ \\approx 49.58$. Đáp án của đề là 49." }
+        ];
+
+        // LOGIC ĐIỀU KHIỂN CHÍNH
+        const allParts = { 'DE4': de4, 'DE5': de5 };
+        const partTitles = { 'DE4': "ĐỀ SỐ 4", 'DE5': "ĐỀ SỐ 5" };
+
+        let currentPart = 'DE4';
+        let currentQuestions = allParts[currentPart];
+        let answersState = {};
+
+        function initAnswersState() {
+            Object.keys(allParts).forEach(p => {
+                answersState[p] = new Array(allParts[p].length).fill(null);
+                allParts[p].forEach((q, idx) => {
+                    if(q.type === 'tf') answersState[p][idx] = [null, null, null, null];
+                });
+            });
+        }
+        initAnswersState();
+
+        const appContainer = document.getElementById('appContainer');
+        const scoreTracker = document.getElementById('scoreTracker');
+
+        window.switchPart = function(partKey) {
+            currentPart = partKey;
+            currentQuestions = allParts[partKey];
+            
+            document.querySelectorAll('.part-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            });
+            event.target.classList.remove('inactive');
+            event.target.classList.add('active');
+            
+            document.getElementById('currentPartTitle').innerText = partTitles[partKey];
+            updateScore();
+            renderAllQuestions();
+        }
+
+        function updateScore() {
+            let completed = 0;
+            answersState[currentPart].forEach((ans, idx) => {
+                if (currentQuestions[idx].type === 'tf') {
+                    if (ans.filter(a => a !== null).length === 4) completed++;
+                } else {
+                    if (ans !== null) completed++;
+                }
+            });
+            scoreTracker.innerText = `Hoàn thành: ${completed} / ${currentQuestions.length}`;
+        }
+
+        function renderAllQuestions() {
+            let html = "";
+            currentQuestions.forEach((q, index) => {
+                let displayId = q.id;
+                let badgeText = "";
+                if (q.id <= 12) badgeText = "PHẦN I: TRẮC NGHIỆM NHIỀU LỰA CHỌN";
+                else if (q.id <= 16) { badgeText = "PHẦN II: TRẮC NGHIỆM ĐÚNG/SAI"; displayId = q.id - 12; }
+                else { badgeText = "PHẦN III: TRẮC NGHIỆM TRẢ LỜI NGẮN"; displayId = q.id - 16; }
+
+                html += `
+                    <div class="mb-8 border-b-2 border-gray-200 pb-8">
+                        <div class="mb-4">
+                            <span class="part-badge shadow-sm">${badgeText}</span>
+                        </div>
+                        <h2 class="text-xl font-bold mb-4 text-blue-800">Câu ${displayId}:</h2>
+                        <div class="mb-6 leading-relaxed">${q.content}</div>
+                `;
+
+                if (q.type === "mcq") {
+                    html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+                    const letters = ['A', 'B', 'C', 'D'];
+                    q.options.forEach((opt, i) => {
+                        let btnClass = "option-btn border-2 border-gray-300 rounded-lg p-4 text-left hover:bg-gray-50 flex items-center shadow-sm";
+                        let state = answersState[currentPart][index];
+                        if (state) {
+                            if (i === q.correct) btnClass += " show-correct";
+                            else if (state.selected === i) btnClass += " selected-wrong";
+                            else btnClass += " opacity-50";
+                        }
+                        html += `<button class="${btnClass}" ${state ? 'disabled' : `onclick="selectMCQ(${index}, ${i})"`}><span class="font-bold mr-3 text-blue-700">${letters[i]}.</span><span>${opt}</span></button>`;
+                    });
+                    html += `</div>`;
+                    if (answersState[currentPart][index]) {
+                        html += `<div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded shadow-sm"><h4 class="font-bold text-yellow-800 mb-1">Lời giải chi tiết:</h4><p class="text-yellow-900">${q.explanation}</p></div>`;
+                    }
+                } else if (q.type === "tf") {
+                    html += `<div class="flex flex-col gap-4">`;
+                    const labels = ['a)', 'b)', 'c)', 'd)'];
+                    q.statements.forEach((stmt, i) => {
+                        const ans = answersState[currentPart][index][i]; 
+                        html += `
+                            <div class="p-4 border rounded-xl bg-gray-50 flex flex-col gap-3 shadow-sm">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex gap-2">
+                                        <button class="tf-btn ${ans !== null ? (stmt.correct === true ? 'correct-highlight' : (ans === true ? 'selected-false' : 'opacity-50')) : ''}" ${ans !== null ? 'disabled' : `onclick="selectTF(${index}, ${i}, true)"`}>Đ</button>
+                                        <button class="tf-btn ${ans !== null ? (stmt.correct === false ? 'correct-highlight' : (ans === false ? 'selected-false' : 'opacity-50')) : ''}" ${ans !== null ? 'disabled' : `onclick="selectTF(${index}, ${i}, false)"`}>S</button>
+                                    </div>
+                                    <div class="flex-grow pt-2"><span class="font-bold mr-2 text-blue-700">${labels[i]}</span><span>${stmt.text}</span></div>
+                                </div>
+                        `;
+                        if (ans !== null) {
+                            const isCorrect = (ans === stmt.correct);
+                            const explPrefix = stmt.correct ? "Đúng vì: " : "Sai vì: ";
+                            html += `<div class="mt-2 text-sm p-3 rounded-lg ${isCorrect ? 'bg-green-100 border border-green-200 text-green-900' : 'bg-red-100 border border-red-200 text-red-900'}"><span class="font-bold">${explPrefix}</span> ${stmt.explanation}</div>`;
+                        }
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                } else if (q.type === "short") {
+                    const ans = answersState[currentPart][index];
+                    html += `
+                        <div class="flex flex-col md:flex-row items-center gap-4 mt-6">
+                            <input type="text" id="answerInput_${index}" class="answer-input shadow-sm" placeholder="Nhập đáp án..." autocomplete="off" ${ans !== null ? 'disabled' : ''} value="${ans ? ans.userAnswer : ''}">
+                            ${ans === null ? `<button onclick="checkShort(${index})" class="check-btn shadow-md whitespace-nowrap">Kiểm tra kết quả</button>` : ''}
+                        </div>
+                    `;
+                    if (ans !== null) {
+                        html += `
+                            <div class="mt-8 p-5 rounded-xl border shadow-sm ${ans.isCorrect ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}">
+                                <h4 class="font-bold text-lg mb-2 ${ans.isCorrect ? 'text-green-800' : 'text-red-800'}">${ans.isCorrect ? '✓ BẠN ĐÃ TRẢ LỜI ĐÚNG!' : '✗ LỰA CHỌN SAI!'}</h4>
+                                ${!ans.isCorrect ? `<p class="mb-3 font-semibold text-gray-700">Đáp án đúng là: <span class="text-blue-700">${q.correctAnswers[0]}</span></p>` : ''}
+                                <hr class="my-3 border-gray-300"><h4 class="font-bold text-gray-800 mb-2">Lời giải chi tiết:</h4><p class="text-gray-700">${q.explanation}</p>
+                            </div>
+                        `;
+                    }
+                }
+                html += `</div>`;
+            });
+            
+            appContainer.innerHTML = html;
+            
+            // Xóa loading và render toán
+            renderMathInElement(appContainer, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "\\[", right: "\\]", display: true}
+                ],
+                throwOnError: false
+            });
+        }
+
+        window.selectMCQ = function(qIndex, optIndex) {
+            if (answersState[currentPart][qIndex]) return;
+            answersState[currentPart][qIndex] = { selected: optIndex, isCorrect: (optIndex === currentQuestions[qIndex].correct) };
+            updateScore(); renderAllQuestions();
+        }
+
+        window.selectTF = function(qIndex, sIndex, userChoice) {
+            if (answersState[currentPart][qIndex][sIndex] !== null) return;
+            answersState[currentPart][qIndex][sIndex] = (userChoice === currentQuestions[qIndex].statements[sIndex].correct);
+            updateScore(); renderAllQuestions();
+        }
+
+        window.checkShort = function(qIndex) {
+            const inputVal = document.getElementById(`answerInput_${qIndex}`).value.trim();
+            if (inputVal === "") return alert("Vui lòng nhập đáp án!");
+            const normalizedInput = inputVal.replace(/\s/g, '').replace(',', '.').toLowerCase();
+            let isCorrect = currentQuestions[qIndex].correctAnswers.some(ans => normalizedInput === ans.replace(/\s/g, '').replace(',', '.').toLowerCase());
+            answersState[currentPart][qIndex] = { userAnswer: inputVal, isCorrect: isCorrect };
+            updateScore(); renderAllQuestions();
+        }
+
+        // Khởi động giao diện
+        renderAllQuestions();
+    </script>
+</body>
+</html>
